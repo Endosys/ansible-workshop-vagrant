@@ -1,0 +1,57 @@
+---
+- name: Run session 1.04 of workshop
+  remote_user: ec2-user
+  hosts:
+    - tower_rhel_nodes
+  tasks:
+  - name: Create Hosts file
+    copy:
+      content: "[web]\n{{ inventory_hostname }}"
+      dest: /home/ec2-user/hosts
+  - name: Replace tower with node in hostname
+    replace:
+      path: /home/ec2-user/hosts
+      regexp: 'tower'
+      replace: 'node'
+      backup: yes
+  - name: Use ansible to install git
+    command: ansible web -m dnf -a 'name=git state=present' -b
+  - name: Use ansible to install maven
+    command: ansible web -m dnf -a "name='@maven:3.5/common' state=present" -b
+  - name: Use ansible to install jboss
+    command: ansible web -m dnf -a "name=@jboss-eap7 state=present" -b
+  - name: Use ansible to start service
+    command: ansible web -m service -a "name=eap7-standalone state=started" -b
+  - name: Use ansible to clone repo
+    command: ansible web -m git -a "repo=https://github.com/jboss-developer/jboss-eap-quickstarts.git dest=/tmp/checkout"
+  - name: Use ansible to run mavin install
+    command: ansible web -m shell -a 'mvn clean install wildfly:deploy -Dmaven.test.skip=true chdir=/tmp/checkout/helloworld' -b
+
+- name: Test sesssion 1.1 of workshop
+  remote_user: ec2-user
+  hosts:
+    - rhel_nodes
+  tasks:  
+  - name: Validate nodes with web server install
+    uri:
+      url: http://{{ inventory_hostname }}:8080/helloworld/ 
+      return_content: yes
+
+- name: Cleanup session 1.1 of workshop
+  remote_user: ec2-user
+  hosts:
+    - tower_rhel_nodes
+  tasks:
+  - name: Use ansible to stop service
+    command: ansible web -m service -a "name=eap7-standalone state=stopped" -b
+    ignore_errors: yes
+  - name: Use ansible to remove jboss
+    command: ansible web -m dnf -a "name=@jboss-eap7 state=absent" -b
+  - name: Use ansible to remove eap7
+    command: ansible web -m dnf -a "name=eap7-* state=absent" -b
+  - name: Use ansible to remove maven
+    command: ansible web -m dnf -a "name=maven state=absent" -b
+  - name: Use ansible to remove git
+    command: ansible web -m dnf -a "name=git state=absent" -b
+
+
