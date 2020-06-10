@@ -13,7 +13,7 @@
       path: /home/ec2-user/hosts
       regexp: 'tower'
       replace: 'node'
-      backup: yes
+      backup: false
   - name: Use ansible to install git
     command: ansible web -m dnf -a 'name=git state=present' -b
   - name: Use ansible to install maven
@@ -42,6 +42,16 @@
   hosts:
     - tower_rhel_nodes
   tasks:
+  - name: Ansible find hosts files
+    find:
+      paths: /home/ec2-user/
+      patterns: hosts
+    register: files_to_delete
+  - name: Ansible remove hosts files
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    with_items: "{{ files_to_delete.files }}"
   - name: Use ansible to stop service
     command: ansible web -m service -a "name=eap7-standalone state=stopped" -b
     ignore_errors: yes
@@ -53,5 +63,3 @@
     command: ansible web -m dnf -a "name=maven state=absent" -b
   - name: Use ansible to remove git
     command: ansible web -m dnf -a "name=git state=absent" -b
-
-

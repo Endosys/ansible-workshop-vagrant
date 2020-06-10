@@ -2,6 +2,7 @@ Vagrant.require_version ">= 2.1.0" # 2.1.0 minimum required for triggers
 
 user = ENV['RH_SUBSCRIPTION_MANAGER_USER']
 password = ENV['RH_SUBSCRIPTION_MANAGER_PW']
+source_all = '~/Downloads/ansible-tower-aws-group_vars-all.yml'
 
 if !user or !password
   puts 'Required environment variables not found. Please set RH_SUBSCRIPTION_MANAGER_USER and RH_SUBSCRIPTION_MANAGER_PW'
@@ -33,15 +34,10 @@ raytheon_ansible_workshop = %{
   sudo dnf install -y git python3-virtualenv ansible
   mkdir src
   cd src/
-  #virtualenv --system-site-packages ansible
-  #source ansible/bin/activate
-  #pip install boto boto3
-  #sudo dnf -y install git python3-boto3 ansible
   git clone https://github.com/RedHatGov/redhatgov.workshops.git
   cd ~/src/redhatgov.workshops/ansible_tower_aws/
   export AWS_ACCESS_KEY_ID=$(grep aws_access_key ~/all.yml | awk -F'"' '{print $2}')
   export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_key ~/all.yml | awk -F'"' '{print $2}')
-  #sed -i 's/env python/env python3/' inventory/hosts
   cp env.sh_example env.sh
   sed -i "s/AWS_ACCESS_KEY_ID.*/AWS_ACCESS_KEY_ID=\'$AWS_ACCESS_KEY_ID\'/" env.sh
   sed -i "s/AWS_SECRET_ACCESS_KEY.*/AWS_SECRET_ACCESS_KEY=\'$AWS_SECRET_ACCESS_KEY\'/" env.sh
@@ -52,21 +48,6 @@ raytheon_ansible_workshop = %{
   echo 'source ansible/bin/activate' >> ~/.bash_profile
   echo 'pip install boto boto3' >> ~/.bash_profile
 }
-
-# raytheon_ansible_workshop1 = %{
-#   export AWS_ACCESS_KEY_ID=$(grep aws_access_key /home/vagrant/all.yml | awk -F'"' '{print $2}')
-#   export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_key /home/vagrant/all.yml | awk -F'"' '{print $2}')
-#   sudo dnf -y install git python3-boto3 ansible
-#   git clone https://github.com/RedHatGov/redhatgov.workshops.git
-#   cd /home/vagrant/redhatgov.workshops/ansible_tower_aws/
-#   sed -i 's/env python/env python3/' inventory/hosts
-#   cp env.sh_example env.sh
-#   sed -i "s/AWS_ACCESS_KEY_ID.*/AWS_ACCESS_KEY_ID=\'$AWS_ACCESS_KEY_ID\'/" env.sh
-#   sed -i "s/AWS_SECRET_ACCESS_KEY.*/AWS_SECRET_ACCESS_KEY=\'$AWS_SECRET_ACCESS_KEY\'/" env.sh
-#   cp /home/vagrant/all.yml group_vars/all.yml
-#   echo 'source /home/vagrant/redhatgov.workshops/ansible_tower_aws/env.sh' >> /home/vagrant/.bash_profile
-#   echo 'cd /home/vagrant/redhatgov.workshops/ansible_tower_aws/' >> /home/vagrant/.bash_profile
-# }
 
 unregister_script = %{
 if subscription-manager status; then
@@ -93,7 +74,7 @@ Vagrant.configure("2") do |config|
     vb.memory = "1024"
   end # virtualbox provider
   
-  config.vm.provision "file", source: "~/Downloads/ansible-tower-aws-group_vars-all.yml", destination: "~/all.yml"
+  config.vm.provision "file", source: "#{source_all}", destination: "~/all.yml"
   config.vm.provision "shell", inline: register_script
   config.vm.provision "shell", inline: container_dev_script
   config.vm.provision "shell", inline: raytheon_ansible_workshop, privileged: false

@@ -10,8 +10,10 @@ Vagrantfile with buildout configuration for a Virtualbox VM with RHEL 8 server-d
     vagrant plugin install vagrant-vbguest 
     ```
 1. To register with subscription-manager a free RedHat Developer subscription is required. This Vagrantfile expects to find the credentials in environment variables called `RH_SUBSCRIPTION_MANAGER_USER` and `RH_SUBSCRIPTION_MANAGER_PW`. Ensure these are exported and available to Vagrant, the Vagrantfile will abort if these are not set. 
+1. group_var/all.yml file filled in with all your specific settings an example is available [here](https://github.com/RedHatGov/redhatgov.workshops/blob/master/ansible_tower_aws/group_vars/all_example.yml)
 
 ## Start
+Be sure to update the source_all variable in Vagrantfile of where your all.yml file is located on host system.
 To start the vm just run command
 ```sh
 vagrant up
@@ -47,6 +49,12 @@ ansible-playbook 3_load.yml
 >```sh
 >ansible -i inventory/hosts tower_rhel_nodes -m package -a "name=python3-pip state=latest" --private-key .redhatgov/fierce-test-key -u ec2-user -b
 >```
+
+## To test workshop
+copy the test-workshop.yml file onto the admin server and run
+```sh
+ansible-playbook test-workshop.yml --syntax-check && ansible-playbook test-workshop.yml
+```
 
 ## To remove the workshop environment from AWS
 ```sh
