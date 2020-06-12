@@ -3,6 +3,7 @@ Vagrant.require_version ">= 2.1.0" # 2.1.0 minimum required for triggers
 user = ENV['RH_SUBSCRIPTION_MANAGER_USER']
 password = ENV['RH_SUBSCRIPTION_MANAGER_PW']
 source_all = '~/Downloads/ansible-tower-aws-group_vars-all.yml'
+unreg_script = './unregister.sh'
 
 if !user or !password
   puts 'Required environment variables not found. Please set RH_SUBSCRIPTION_MANAGER_USER and RH_SUBSCRIPTION_MANAGER_PW'
@@ -54,10 +55,7 @@ if subscription-manager status; then
   sudo subscription-manager unregister
 fi
 cd /home/vagrant/src/redhatgov.workshops/ansible_tower_aws
-virtualenv --system-site-packages ansible
-source ansible/bin/activate
-pip install boto boto3
-ansible-playbook 4_unregister.yml || ansible-playbook 4_unregister.yml -e NOSSH=true
+./unregister.sh
 rm -rf .redhatgov
 }
 
@@ -78,6 +76,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: register_script
   config.vm.provision "shell", inline: container_dev_script
   config.vm.provision "shell", inline: raytheon_ansible_workshop, privileged: false
+  config.vm.provision "file", source: "#{unreg_script}", destination: "~/src/redhatgov.workshops/ansible_tower_aws/unregister.sh"
 
   config.trigger.before :destroy do |trigger|
     trigger.name = "Before Destroy trigger"
