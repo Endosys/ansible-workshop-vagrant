@@ -43,8 +43,8 @@ raytheon_ansible_workshop = %{
   sed -i "s/AWS_ACCESS_KEY_ID.*/AWS_ACCESS_KEY_ID=\'$AWS_ACCESS_KEY_ID\'/" env.sh
   sed -i "s/AWS_SECRET_ACCESS_KEY.*/AWS_SECRET_ACCESS_KEY=\'$AWS_SECRET_ACCESS_KEY\'/" env.sh
   cp ~/all.yml group_vars/all.yml
-  echo 'source ~/src/redhatgov.workshops/ansible_tower_aws/env.sh' >> ~/.bash_profile
-  echo 'cd ~/src/redhatgov.workshops/ansible_tower_aws/' >> ~/.bash_profile
+  echo 'source /home/vagrant/src/redhatgov.workshops/ansible_tower_aws/env.sh' >> ~/.bash_profile
+  echo 'cd /home/vagrant/src/redhatgov.workshops/ansible_tower_aws/' >> ~/.bash_profile
   echo 'virtualenv --system-site-packages ansible' >> ~/.bash_profile
   echo 'source ansible/bin/activate' >> ~/.bash_profile
   echo 'pip install boto boto3' >> ~/.bash_profile
@@ -54,7 +54,9 @@ unregister_script = %{
 if subscription-manager status; then
   sudo subscription-manager unregister
 fi
-cd /home/vagrant/src/redhatgov.workshops/ansible_tower_aws
+}
+workshop_remove_script = %{
+cd ~/src/redhatgov.workshops/ansible_tower_aws
 ./unregister.sh
 rm -rf .redhatgov
 }
@@ -83,6 +85,7 @@ Vagrant.configure("2") do |config|
     trigger.info = "Unregistering this VM from RedHat Subscription Manager..."
     trigger.warn = "If this fails, unregister VMs manually at https://access.redhat.com/management/subscriptions"
     trigger.run_remote = {inline: unregister_script}
+    trigger.run_remote = {inline: workshop_remove_script, privileged: false}
     trigger.on_error = :continue
   end # trigger.before :destroy
 end # vagrant configure
