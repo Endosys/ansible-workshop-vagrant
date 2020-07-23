@@ -1,8 +1,10 @@
 ---
-- name: Run session 1.04 of workshop
+- name: Run session 1.0 of workshop
   remote_user: ec2-user
   hosts:
     - tower_rhel_nodes
+  tags:
+  - install
   tasks:
   - name: Create Hosts file
     copy:
@@ -27,31 +29,27 @@
   - name: Use ansible to run mavin install
     command: ansible web -m shell -a 'mvn clean install wildfly:deploy -Dmaven.test.skip=true chdir=/tmp/checkout/helloworld' -b
 
-- name: Test sesssion 1.1 of workshop
+- name: Test sesssion 1.0 of workshop
   remote_user: ec2-user
   hosts:
     - rhel_nodes
+  tags:
+  - test
   tasks:  
   - name: Validate nodes with web server install
     uri:
       url: http://{{ inventory_hostname }}:8080/helloworld/ 
       return_content: yes
 
-- name: Cleanup session 1.1 of workshop
+- name: Cleanup session 1.0 of workshop
   remote_user: ec2-user
   hosts:
     - tower_rhel_nodes
+  tags:
+  - uninstall
   tasks:
-  - name: Ansible find hosts files
-    find:
-      paths: /home/ec2-user/
-      patterns: hosts
-    register: files_to_delete
-  - name: Ansible remove hosts files
-    file:
-      path: "{{ item.path }}"
-      state: absent
-    with_items: "{{ files_to_delete.files }}"
+  - name: Use ansible to run mavin uninstall
+    command: ansible web -m shell -a 'mvn clean install wildfly:undeploy -Dmaven.test.skip=true chdir=/tmp/checkout/helloworld' -b
   - name: Use ansible to stop service
     command: ansible web -m service -a "name=eap7-standalone state=stopped" -b
     ignore_errors: yes
@@ -63,3 +61,13 @@
     command: ansible web -m dnf -a "name=maven state=absent" -b
   - name: Use ansible to remove git
     command: ansible web -m dnf -a "name=git state=absent" -b
+  - name: Ansible find hosts files
+    find:
+      paths: /home/ec2-user/
+      patterns: hosts
+    register: files_to_delete
+  - name: Ansible remove hosts files
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    with_items: "{{ files_to_delete.files }}"

@@ -37,17 +37,13 @@ raytheon_ansible_workshop = %{
   cd src/
   git clone https://github.com/RedHatGov/redhatgov.workshops.git
   cd ~/src/redhatgov.workshops/ansible_tower_aws/
-  export AWS_ACCESS_KEY_ID=$(grep aws_access_key ~/all.yml | awk -F'"' '{print $2}')
-  export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_key ~/all.yml | awk -F'"' '{print $2}')
-  cp env.sh_example env.sh
-  sed -i "s/AWS_ACCESS_KEY_ID.*/AWS_ACCESS_KEY_ID=\'$AWS_ACCESS_KEY_ID\'/" env.sh
-  sed -i "s/AWS_SECRET_ACCESS_KEY.*/AWS_SECRET_ACCESS_KEY=\'$AWS_SECRET_ACCESS_KEY\'/" env.sh
   cp ~/all.yml group_vars/all.yml
-  echo 'source /home/vagrant/src/redhatgov.workshops/ansible_tower_aws/env.sh' >> ~/.bash_profile
   echo 'cd /home/vagrant/src/redhatgov.workshops/ansible_tower_aws/' >> ~/.bash_profile
   echo 'virtualenv --system-site-packages ansible' >> ~/.bash_profile
   echo 'source ansible/bin/activate' >> ~/.bash_profile
   echo 'pip install boto boto3' >> ~/.bash_profile
+  echo "export AWS_ACCESS_KEY_ID=$(grep aws_access_key ~/all.yml | awk -F'\"' '{print $2}')" >> ~/.bash_profile
+  echo "export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_key ~/all.yml | awk -F'\"' '{print $2}')" >> ~/.bash_profile
 }
 
 unregister_script = %{
